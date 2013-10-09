@@ -1,0 +1,55 @@
+-------------------------------------------
+ short description
+-------------------------------------------
+tools for automatized weighting and drawing of histograms
+
+
+-------------------------------------------
+ weighting histograms with weightHist.py
+-------------------------------------------
+
+the directory contains all ingredients for a working example:
+$ ./weightHist.py --counthistpath=Ztautau_CR1/counts
+
+Histograms are read from root files in an input directory (option --idir).
+They are weighted with L*eff*xsec/N,
+where L is read from a txt fil (option --lumifile), 
+or where L is given as command line argument (option --lumi),
+and where eff and xsec are read from txt file (option --xsecfile).
+For N, the script takes the content of the first bin of the 'count histogram' 
+(option --countHistPath)
+The weighted histograms are written to root files in a new output directory (option --odir).
+The output root files have identical names and identical stucture as the input root files.
+
+call --help option for more details
+
+
+-------------------------------------------
+ draw histograms with drawHist.py
+-------------------------------------------
+
+The directory contains all ingredients for a working example.
+First, run the example in the previous section, then:
+$ ./drawHist.py ---idir=input_weighted/ --histpath="Ztautau_CR1"
+
+Historgrams are read from root files in an input directory (option --idir).
+They are drawn according to 'draw rules' specified in a cfg file (option --drawCfg).
+The script assumes that each input root file represents a different sample,
+and that all input root files have the exact same file structure of directories and histograms.
+(see further for exceptions) 
+The script walks recursively through the file structure of the input files,
+and draws each histogram as specified in the draw rules.
+The resulting canvasses are saved in the prefered format (option --oformat),
+in a new output directory (optoin --odir),
+that has the the same structure of subdirectories as the input files.
+
+The language of the draw rules cfg files is explained in drawRules.cfg.
+
+If one only wants to consider a particular histogram in the file structure,
+or histograms in a particular directory, the path to this histogram or directory
+can be specified as a command line option (option --histpath=HISTPATH)
+The structure of the input files must only be identical within this path.
+
+Layout options specific to particular histograms in the input file structure,
+are specified in a hist cfg file (option --histcfg).
+See histCfg.cfg for syntax.

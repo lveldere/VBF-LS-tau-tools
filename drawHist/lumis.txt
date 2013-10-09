@@ -1,0 +1,8 @@
+Tau_Run2012C_Prompt_Reco_v2_30Jan 6116
+Tau_icludingZprime_Run2012C_Prompt_Reco_v2_30Jan 281.155
+Tau_Run2012A_06AugReReco 82.136
+Tau_Run2012A_13Jul2012 808.472
+Tau_Run2012B_13Jul2012 4429
+Tau_Run2012C_24Aug 495.003
+Tau_Run2012C_ECALRecover_11Dec2012 134.242
+Tau_Run2012D_Prompt_Reco_15Feb 7274
