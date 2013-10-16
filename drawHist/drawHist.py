@@ -23,12 +23,13 @@ FRACRATIO=0.22
 from optparse import OptionParser
 parser = OptionParser()
 parser.add_option("--drawrules",dest="drawrules",default="drawRules.cfg",help="path to cfg file with draw rules, default=[%default]")
-parser.add_option("--idir",dest="idir",default="input",help="path to directory with input histogram files, default=[%default]")
+parser.add_option("--idir",dest="idir",default="input_weighted",help="path to directory with input histogram files, default=[%default]")
 parser.add_option("--odir",dest="odir",help="path to output directory, default=IDIR_drawn")
 parser.add_option("--force",dest="force",action="store_true",default=False,help="if ODIR already exists, override, default=%default")
-parser.add_option("--oformat",dest="oformat",default="png",help="output format, default=[%default]")
+parser.add_option("--oformat",dest="oformat",default="pdf",help="output format, default=[%default]")
 parser.add_option("--histpath",dest="histpath",help="paths to histograms/directories to be drawn, default: all histograms in all directories are drawn")
 parser.add_option("--histcfg",dest="histcfg",help="cfg for histograms, e.g. to set x and ytitles")
+parser.add_option("--verbose",dest="verbose",action="store",help="run in verbose mode",default=0)
 (options, args) = parser.parse_args()
 if options.odir == None:
     options.odir = options.idir.rstrip("/") + "_drawn"
@@ -99,6 +100,8 @@ class MyHistStyle:
         self.legendOption = myGet("legend option",options,"l")
 
     def apply(self,hist):
+        if hist == None:
+            return
         # style histograms
         xaxis = None
         yaxis = None
@@ -136,6 +139,8 @@ class MyHistStyle:
 # style specific for ratios
 #######################
 def applyRatioStyle(hist):
+    if hist == None:
+        return
     hist.SetMinimum(0)
     hist.SetMaximum(2)
     hist.SetLabelSize(0,"X")
@@ -163,28 +168,48 @@ class DrawRuleHist:
         self.hist = None 
         self._hists = None
         self._init = False
+        self.up2data = False
         
     def init(self,idir,rules):
         if not self._init:
             self.files = [rt.TFile.Open(idir + "/" + fileName) for fileName in self.fileNames]
+            for f in range(0,len(self.files)):
+                file = self.files[f]
+                if file == None:
+                    print "WARNING: skipping file",self.fileNames[f]
+                    continue
             self._init = True
 
     def reset(self):
         self.hist = None
+        self.up2date = False
         
     def updateHist(self,histPath):
-        if self.hist is not None:
+        if self.up2date:
+            if options.verbose > 1:
+                print "already up to date"
             return
+        if options.verbose > 1:
+            print "updating"
+        self.up2date = True
 
         if not self._init:
             print "ERROR: call init before calling updateHist, exit..."
             sys.exit()
 
-        for file in self.files:
+        for f in range(0,len(self.files)):
+            file = self.files[f]
+            if file == None:
+                continue
             obj = file.Get(histPath)
+            if options.verbose:
+                print "   " + file.GetName()
             if obj == None:
-                print "ERROR: no histogram named \"" + histPath + "\"in file \"" + file.GetName() + ", exit..."
-                sys.exit()
+                print "WARNING: no histogram named \"" + histPath + "\"in file \"" + file.GetName() + ", skipping..."
+                continue
+            if options.verbose > 1:
+                if obj.GetXaxis().GetLabels() != None:
+                    print [x for x in obj.GetXaxis().GetLabels()]
             if self.hist is None:
                 self.hist = obj.Clone()
             else:
@@ -203,6 +228,7 @@ class DrawRuleHistSum:
         self.hist = None
         self.drawRules = None
         self._init = False
+        self.up2date = False
 
     def init(self,idir,rules):
         if not self._init:
@@ -211,17 +237,23 @@ class DrawRuleHistSum:
 
     def reset(self):
         self.hist = None
+        self.up2date = False
     
     def updateHist(self,histPath):
-        if self.hist is not None:
+        if self.up2date:
             return
+        self.up2date = True
 
         if not self._init:
             print "ERROR: call init before calling updateHist, exit..."
             sys.exit()
 
         for rule in self.drawRules:
+            if options.verbose:
+                print "   " + rule.name
             rule.updateHist(histPath)
+            if rule.hist == None:
+                continue
             if self.hist is None:
                 self.hist = rule.hist.Clone()
             else:
@@ -240,6 +272,7 @@ class DrawRuleHistStack:
         self.currentytitle = ""
         self._init = False
         self.drawRules = None
+        self.up2date = False
 
     def init(self,idir,rules):
         if not self._init:
@@ -248,17 +281,23 @@ class DrawRuleHistStack:
 
     def reset(self):
         self.hist = None
+        self.up2date = False
                                       
     def updateHist(self,histPath):
-        if self.hist is not None:
+        if self.up2date:
             return
+        self.up2date = True
 
         if not self._init:
             print "ERROR: call init before calling updateHist, exit..."
             sys.exit()
 
         for rule in self.drawRules:
+            if options.verbose:
+                print "   " + rule.name
             rule.updateHist(histPath)
+            if rule.hist == None:
+                continue
             if self.hist is None:
                 self.hist = rt.THStack("stack","")
                 self.currentxtitle = rule.hist.GetXaxis().GetTitle()
@@ -298,10 +337,12 @@ class DrawRuleHistRatio:
         self.denominatorHist = None
         self._init = False
         self.drawRef = bool(myGet("draw ref",options,default=0))
+        self.up2date = False
 
     def reset(self):
         self.hist = None
         self.refhist = None
+        self.up2date = False
 
     def init(self,idir,rules):
         if not self._init:
@@ -310,8 +351,9 @@ class DrawRuleHistRatio:
             self._init = True 
 
     def updateHist(self,histPath):
-        if self.hist is not None:
+        if self.up2date:
             return
+        self.up2date = True
 
         if not self._init:
             print "ERROR: call init before calling updateHist, exit..."
@@ -319,6 +361,10 @@ class DrawRuleHistRatio:
 
         self.numeratorDrawRule.updateHist(histPath)
         self.denominatorDrawRule.updateHist(histPath)
+        if self.numeratorDrawRule.hist == None:
+            return
+        if self.denominatorDrawRule.hist == None:
+            return
 
         # the ratio
         self.hist = self.numeratorDrawRule.hist.Clone()
@@ -428,12 +474,18 @@ class DrawRules:
                 self.defaultYtitle = myGet("ytitle",options,None)
 
     def getHistPaths(self,base=""):
+        print "reading histogram paths ..."
         self.init()
         templateFile = None
         for rule in self.rules.values():
             if isinstance(rule,DrawRuleHist):
-                templateFile = rule.files[0]
-                break
+                for f in range(0,len(rule.files)):
+                    if rule.files[f] != None:
+                        print "reading histogram paths from " + rule.files[f].GetName()
+                        templateFile = rule.files[f]
+                        break
+                if templateFile != None:
+                    break
         paths = mytools.listRootFile(templateFile,base)
         for p in reversed(range(0,len(paths))):
             o = templateFile.Get(paths[p])
@@ -470,30 +522,42 @@ class DrawRules:
     def draw(self,histpath):
         self.init()
 
+        if options.verbose > 1:
+            print "drawing histogram",histpath
+
         # read in the relevant histogram from each of the root files
         self.updateHist(histPath)
 
         # find and set max
-        self.rules[self._draw[0]].hist
-        max = self.rules[self._draw[0]].hist.GetMaximum()
-        for d in range(1,len(self._draw)):
+        max = None
+        for d in range(0,len(self._draw)):
+            if self.rules[self._draw[d]].hist == None:
+                continue
             _max = self.rules[self._draw[d]].hist.GetMaximum()
-            if _max > max:
+            if max == None or _max > max:
                 max = _max
-        self.rules[self._draw[0]].hist.SetMaximum(max*1.1)
 
         # draw histograms
         HISTPAD.cd()
+        nd = 0    #number of hist drawn
         for d in range(0,len(self._draw)):
             rule = self.rules[self._draw[d]]
+            if rule.hist == None:
+                if verbose > 1:
+                    print "skip drawing for rule",rule.name
+                continue
+            nd += 1
+            
             drawOption = rule.histStyle.drawOption
-            if d != 0:
+            if nd == 1:
+                rule.hist.SetMaximum(max*1.1)
+            if nd > 1:
                 if drawOption == "":
                     drawOption = "SAME"
                 else:
                     drawOption += ",SAME"
-            if DEBUG:
-                print "!draw " + rule.name + " with draw option ", drawOption
+            if options.verbose > 1:
+                print "   draw " + rule.name + " with draw option ", drawOption
             rule.hist.Draw(drawOption)
             self.applyHistCfg(rule.hist)
             
@@ -540,16 +604,20 @@ class DrawRules:
         # draw ratios
         if self.drawRatio is not None:
             RATIOPAD.cd()
+            nd = 0   # number of hist drawn
             for d in range(0,len(self.drawRatio)):
                 rule = self.rules[self.drawRatio[d]]
+                if rule.hist == None:
+                    continue
+                nd += 1
                 # the ratio histogram
                 drawOption = rule.histStyle.drawOption
-                if d != 0:
+                if nd > 1:
                     if drawOption == "":
                         drawOption = "SAME"
                     else:
                         drawOption += ",SAME"
-                if d==0:
+                if nd==1:
                     applyRatioStyle(rule.hist)
                 rule.hist.Draw(drawOption)
                 # the reference histogram
@@ -597,7 +665,7 @@ class DrawRules:
 ############################
 print "read draw rules from",options.drawrules
 drawRules = DrawRules(options.drawrules)
-print "INPUT DIR: ",options.odir
+print "INPUT DIR: ",options.idir
 drawRules.idir = options.idir
 print "OUPUT DIR: ",options.odir
 drawRules.odir = options.odir
@@ -613,6 +681,8 @@ drawRules.histCfgPath = options.histcfg
 if options.histpath is None:
     options.histpath = ""
 histPaths = drawRules.getHistPaths(options.histpath)
+if len(histPaths) == 0:
+    print "WARNING: no histograms found!"
 
 ############################
 # draw!
@@ -620,4 +690,7 @@ histPaths = drawRules.getHistPaths(options.histpath)
 nh = len(histPaths)
 for h in range(nh):
     histPath = histPaths[h]
+    if options.verbose:
+        print histPaths[h]
     drawRules.draw(histPath)
+    

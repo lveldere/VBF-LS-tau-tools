@@ -9,7 +9,7 @@ tools for automatized weighting and drawing of histograms
 -------------------------------------------
 
 the directory contains all ingredients for a working example:
-$ ./weightHist.py --counthistpath=Ztautau_CR1/counts
+$ ./weightHist.py
 
 Histograms are read from root files in an input directory (option --idir).
 They are weighted with L*eff*xsec/N,
@@ -30,7 +30,7 @@ call --help option for more details
 
 The directory contains all ingredients for a working example.
 First, run the example in the previous section, then:
-$ ./drawHist.py ---idir=input_weighted/ --histpath="Ztautau_CR1"
+$ ./drawHist.py
 
 Historgrams are read from root files in an input directory (option --idir).
 They are drawn according to 'draw rules' specified in a cfg file (option --drawCfg).

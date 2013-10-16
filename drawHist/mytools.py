@@ -9,6 +9,8 @@ def listRootFile(file,base=""):
     obj = file
     if len(base) != 0:
         obj = file.Get(base)
+        if obj == None:
+            return path
         path.append(base)
     
     # if base object is directory,
