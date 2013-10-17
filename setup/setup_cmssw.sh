@@ -25,3 +25,16 @@ cvs co -d SHarper/HEEPAnalyzer UserCode/SHarper/HEEPAnalyzer
 cvs co -d HighMassAnalysis/Skimming -r for537_02182013 UserCode/AlfredoGurrola/HighMassAnalysis/Skimming
 cvs co -d HighMassAnalysis/Configuration -r for537_02182013 UserCode/AlfredoGurrola/HighMassAnalysis/Configuration
 cvs co -d HighMassAnalysis/Analysis -r forVBFSusy_07222012 UserCode/AlfredoGurrola/HighMassAnalysis/Analysis
+scram b -j 8
+
+cd PhysicsTools
+cvs co -r v5_4_1 -d TheNtupleMaker UserCode/SusySapien/PhysicsTools/TheNtupleMaker
+cd TheNtupleMaker
+scripts/initTNM.py
+scram b clean
+scram b -j 8
+
+cd $CMSSW_BASE
+mkdir $CMSSW_BASE/src/ntuples    # add ntuple package
+git clone https://github.com/rathjd/VBF-LS-tau-ntupler $CMSSW_BASE/src/ntuples/VBF-LS-tau-ntupler
+scram b -j 8
