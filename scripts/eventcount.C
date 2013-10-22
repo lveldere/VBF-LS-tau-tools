@@ -21,12 +21,13 @@ TH1F* h1_CR8counts = ((TH1F*)(inputfile->Get("Central_invertedVBF_AntiMediumIso_
 TH1F* h1_CR9counts = ((TH1F*)(inputfile->Get("Central_AntiLooseIso_CR9/counts")));
 TH1F* h1_CR10counts = ((TH1F*)(inputfile->Get("Central_invertedVBF_AntiLooseIso_CR10/counts")));
 
+unsigned int isdata = 0;
 
-double SRcounts = h1_SRcounts->GetBinContent(11);
-double CR3counts = h1_CR3counts->GetBinContent(13);
-double CR5counts = h1_CR5counts->GetBinContent(13);
-double CR7counts = h1_CR7counts->GetBinContent(13);
-double CR9counts = h1_CR9counts->GetBinContent(13);
+double SRcounts = h1_SRcounts->GetBinContent(11+isdata);
+double CR3counts = h1_CR3counts->GetBinContent(11+isdata);
+double CR5counts = h1_CR5counts->GetBinContent(11+isdata);
+double CR7counts = h1_CR7counts->GetBinContent(11+isdata);
+double CR9counts = h1_CR9counts->GetBinContent(11+isdata);
 
 double SRcounts_err = 0.;
 double CR3counts_err = 0.;
@@ -46,7 +47,7 @@ double CR6counts = 0;
 double CR8counts = 0;
 double CR10counts = 0;
 
-for (int i = 7; i < 15; i++){
+for (int i = (6+isdata) ; i < (14+isdata); i++){
 
 	CR2counts += h1_CR2counts->GetBinContent(i);
 	CR4counts += h1_CR4counts->GetBinContent(i);
