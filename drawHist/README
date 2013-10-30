@@ -53,3 +53,12 @@ The structure of the input files must only be identical within this path.
 Layout options specific to particular histograms in the input file structure,
 are specified in a hist cfg file (option --histcfg).
 See histCfg.cfg for syntax.
+
+---------------------------------------------
+ additional tools
+---------------------------------------------
+
+simplePrint.py <FILE.ROOT> <OUTPUT DIR>
+
+will simply print all histograms in <FILE.ROOT> to pdf and store them in  <OUTPUT DIR>
+

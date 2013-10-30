@@ -56,7 +56,6 @@ RATIOPAD.SetBottomMargin(0.05/(FRACRATIO))
 RATIOPAD.SetTicks(1,1)
 CANVAS.cd()
 RATIOPAD.Draw()
-
 #######################
 # given a key, gets value from dictionary
 # if key is not available:
@@ -404,6 +403,7 @@ class DrawRules:
         self.filesOpen = False
         self._init = False
         self.defaultYtitle = None
+        self.drawLegend = None
         
         # read cfg file
         cfg = ConfigParser.RawConfigParser()
@@ -413,13 +413,14 @@ class DrawRules:
         mainOptions = listOfPairs2Dict(cfg.items("main"))
         dictName = "section 'main'"
         self._draw = myGet("draw",mainOptions,dictName=dictName,exitIfMissing=True).split(",")
-        self.drawRatio = myGet("drawratio",mainOptions,dictName=dictName,default=None)
-        if self.drawRatio is not None:
-            self.drawRatio = self.drawRatio.split(",")
+        self.drawratio = myGet("drawratio",mainOptions,dictName=dictName,default=None)
+        if self.drawratio is not None:
+            self.drawratio = self.drawratio.split(",")
         self.title = myGet("title",mainOptions,dictName=dictName,default=None) 
-        self.ytitle = myGet("hists",mainOptions,default="events per bin")    
+        self.ytitle = myGet("ytitle",mainOptions,default="events per bin")    
         self.histCfgPath = None 
         self.histCfg = None
+        self.drawlegend = int(myGet("drawlegend",mainOptions,default="1"))
 
         # parse other sections
         for section in cfg.sections():
@@ -471,7 +472,7 @@ class DrawRules:
             self.histCfg.read(self.histCfgPath)
             if  self.histCfg.has_section("default"):
                 options = listOfPairs2Dict(self.histCfg.items("default"))
-                self.defaultYtitle = myGet("ytitle",options,None)
+                self.defaultYtitle = myGet("ytitle",options,"events per bin")
 
     def getHistPaths(self,base=""):
         print "reading histogram paths ..."
@@ -562,24 +563,25 @@ class DrawRules:
             self.applyHistCfg(rule.hist)
             
         # create and draw legend
-        legend = rt.TLegend(0.65,0.5,0.9,0.9)
-        legend.SetBorderSize(0)
-        legend.SetFillStyle(0)
-        legend.SetTextAlign(12)
-        legend.SetTextFont(TEXTFONT)
-        legend.SetTextSize(TEXTSIZE_BIG)
-        n = 0
-        for d in range(0,len(self._draw)):
-            rule = self.rules[self._draw[d]]
-            if isinstance(rule,DrawRuleHistStack):
-                for _rule in reversed(rule.drawRules):
-                    legend.AddEntry(_rule.hist,_rule.histStyle.legendTitle,_rule.histStyle.legendOption)
-                    n+=1
-            else:            
-                legend.AddEntry(rule.hist,rule.histStyle.legendTitle,rule.histStyle.legendOption)
-                n += 1
-        legend.SetY1(0.9-float(n*TEXTSIZE_BIG*1.1)/CANVASHEIGHT/(1-FRACRATIO))
-        legend.Draw()
+        if self.drawlegend:
+            legend = rt.TLegend(0.65,0.5,0.9,0.9)
+            legend.SetBorderSize(0)
+            legend.SetFillStyle(0)
+            legend.SetTextAlign(12)
+            legend.SetTextFont(TEXTFONT)
+            legend.SetTextSize(TEXTSIZE_BIG)
+            n = 0
+            for d in range(0,len(self._draw)):
+                rule = self.rules[self._draw[d]]
+                if isinstance(rule,DrawRuleHistStack):
+                    for _rule in reversed(rule.drawRules):
+                        legend.AddEntry(_rule.hist,_rule.histStyle.legendTitle,_rule.histStyle.legendOption)
+                        n+=1
+                else:            
+                    legend.AddEntry(rule.hist,rule.histStyle.legendTitle,rule.histStyle.legendOption)
+                    n += 1
+            legend.SetY1(0.9-float(n*TEXTSIZE_BIG*1.1)/CANVASHEIGHT/(1-FRACRATIO))
+            legend.Draw()
         
         # a title on top
         pt = None
@@ -602,11 +604,11 @@ class DrawRules:
                 break
 
         # draw ratios
-        if self.drawRatio is not None:
+        if self.drawratio is not None:
             RATIOPAD.cd()
             nd = 0   # number of hist drawn
-            for d in range(0,len(self.drawRatio)):
-                rule = self.rules[self.drawRatio[d]]
+            for d in range(0,len(self.drawratio)):
+                rule = self.rules[self.drawratio[d]]
                 if rule.hist == None:
                     continue
                 nd += 1
@@ -635,14 +637,14 @@ class DrawRules:
         if not os.path.exists(_odir):
             os.makedirs(_odir)
         HISTPAD.SetLogy(0)
-        if self.drawRatio is None:
+        if self.drawratio is None:
             HISTPAD.Print(_opath)
         else:
             CANVAS.Print(_opath)
         
         _opath = self.odir + "/" + histPath + "_log." + self.oformat 
         HISTPAD.SetLogy(1)
-        if self.drawRatio is None:
+        if self.drawratio is None:
             HISTPAD.Print(_opath)
         else:
             CANVAS.Print(_opath)
@@ -692,5 +694,8 @@ for h in range(nh):
     histPath = histPaths[h]
     if options.verbose:
         print histPaths[h]
+        
+    if drawRules.drawratio is None:
+        HISTPAD = CANVAS
     drawRules.draw(histPath)
     
