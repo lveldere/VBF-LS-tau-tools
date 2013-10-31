@@ -67,9 +67,10 @@ git clone https://github.com/lveldere/VBF-LS-tau-data $projectdir/data/VBF-LS-ta
 rmdir $projectdir/data/samples
 ln -s $projectdir/data/VBF-LS-tau-data/samples $projectdir/data/samples
 
-# complete the setenv script
-#echo "export PATH=\$PATH:\$PROJECTDIR/tools/drawHist:\$PROJECTDIR/tools/scripts" >> $projectdir/setenv.sh
-#echo "export PYTHONPATH=\$PYTHONPATH:\$PROJECTDIR/tools/drawHist" >> $projectdir/setenv.sh
+complete the setenv script
+echo "export PATH=\$PATH:\$PROJECTDIR/tools/drawHist:\$PROJECTDIR/tools/scripts" >> $projectdir/setenv.sh
+echo "export PYTHONPATH=\$PYTHONPATH:\$PROJECTDIR/tools/drawHist" >> $projectdir/setenv.sh
+echo "export PROJECTARVHIVE=/afs/desy.de/user/l/lveldere/VBF-LS-tau-archive" >> $projectdir/setenv.sh
 
 echo "PLEASE START FROM NEW SHELL AND RUN:"
 echo "\$ source $projectdir/setenv.sh"

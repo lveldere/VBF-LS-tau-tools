@@ -16,15 +16,11 @@ resfiles = []                                              # 1 list of pdf files
 
 def addResDir(dir,resdirs,resfiles):
     resdirs.append(dir)                                    # add the directory
-    resfiles.append(sorted(glob.glob(dir + "/*.pdf")))  # list the pdf files in the resdir
+    resfiles.append(sorted(glob.glob(dir + "/*.pdf")))     # list the pdf files in the resdir
     for subdir in sorted(glob.glob(dir + "/*")):           # loop over all entries in resdir
         if os.path.isdir(subdir):
             addResDir(subdir,resdirs,resfiles)             # add directories recursively
-
 addResDir(resdir,resdirs,resfiles)
-print resdirs
-for entry in resfiles:
-    print entry
 
 ################################################
 #      create the tex file
@@ -56,11 +52,11 @@ def addLogSection(TEXFILE,title,figures,captions):
         if f%2 == 0:
             TEXFILE.write("\\clearpage\n")
         fig = figures[f]
-        cap = captions[f]
+        cap = captions[f].replace("_","\\_")
         TEXFILE.write("\\begin{figure}\n")
         TEXFILE.write("\\centering\n")
         TEXFILE.write("   \\includegraphics[height=0.3\\paperheight]{" + os.path.abspath(fig) + "}\n")
-        TEXFILE.write("   \\caption{" + cap.replace("_","\\_").replace("/","/\\\\") + "}\n")
+        TEXFILE.write("   \\caption{" + cap + "}\n")
         TEXFILE.write("\\end{figure}\n")
     TEXFILE.write("\\clearpage\n")
     TEXFILE.write("\\newpage")
@@ -69,9 +65,13 @@ def addLogSection(TEXFILE,title,figures,captions):
 #      add one section per directory to the tex file
 ################################################
 for d in range(0,len(resdirs)):
-    title = resdirs[d].replace(os.path.split(resdirs[0])[0],"").lstrip("/")
+    title = resdirs[d].replace(resdirs[0],"").lstrip("/")
+    if title == "":
+        title = "main"
     files = resfiles[d]
-    captions = [file.replace(os.path.split(resdirs[0])[0],"").lstrip("/") for file in files]
+    captions = []
+    for file in files:
+        captions.append(file.replace(resdirs[0],"").lstrip("/"))
     addLogSection(TEXFILE,title,files,captions)
 
 ################################################
