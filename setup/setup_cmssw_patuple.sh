@@ -30,4 +30,4 @@ wget http://dl.dropbox.com/u/206488/CMS/RA2TAU/VBF-re-PATTuples/pfMETsysShiftCor
 cd $CMSSW_BASE/src/
 scram b clean
 scram build -c
-scram b -j 20
+scram b -j 8
