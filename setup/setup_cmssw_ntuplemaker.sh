@@ -21,8 +21,8 @@ cvs co -d CMGTools/External -r V00-03-04 UserCode/CMG/CMGTools/External
 git cms-merge-topic -u TaiSakuma:53X-met-130910-01
 cvs co -d HighMassAnalysis/Configuration -r for537_02182013 UserCode/AlfredoGurrola/HighMassAnalysis/Configuration
 cvs co -d HighMassAnalysis/Skimming -r for537_02182013 UserCode/AlfredoGurrola/HighMassAnalysis/Skimming
-cp /afs/naf.desy.de/user/m/marconi/public/VBFPATupleProducer/hardcoded_hiMassTau_patProd.py $CMSSW_BASE/src/HighMassAnalysis/Configuration/test/Data_TauTauSkim/hiMassTau_patProd.py
-cp /afs/naf.desy.de/user/m/marconi/public/VBFPATupleProducer/patTupleEventContentForHiMassTau_cff.py $CMSSW_BASE/src/HighMassAnalysis/Configuration/python/patTupleEventContentForHiMassTau_cff.py
+cp /afs/desy.de/user/d/dmarconi/public/VBFPATupleProducer/hardcoded_hiMassTau_patProd.py $CMSSW_BASE/src/HighMassAnalysis/Configuration/test/Data_TauTauSkim/hiMassTau_patProd.py
+cp /afs/desy.de/user/d/dmarconi/public/VBFPATupleProducer/patTupleEventContentForHiMassTau_cff.py $CMSSW_BASE/src/HighMassAnalysis/Configuration/python/patTupleEventContentForHiMassTau_cff.py
 
 cd $CMSSW_BASE/src/JetMETCorrections/Type1MET/python/
 rm -v pfMETsysShiftCorrections_cfi.py
