@@ -172,9 +172,13 @@ class DrawRuleHist:
     def init(self,idir,rules):
         if not self._init:
             self.files = [rt.TFile.Open(idir + "/" + fileName) for fileName in self.fileNames]
+            for _file in self.files:
+                paths = mytools.listRootFile(_file)
+                for p in paths:
+                    _file.Get(p)
             for f in range(0,len(self.files)):
-                file = self.files[f]
-                if file == None:
+                _file = self.files[f]
+                if _file == None:
                     print "WARNING: skipping file",self.fileNames[f]
                     continue
             self._init = True
@@ -197,14 +201,14 @@ class DrawRuleHist:
             sys.exit()
 
         for f in range(0,len(self.files)):
-            file = self.files[f]
-            if file == None:
+            _file = self.files[f]
+            if _file == None:
                 continue
-            obj = file.Get(histPath)
+            obj = _file.Get(histPath)
             if options.verbose:
-                print "   " + file.GetName()
+                print "   " + _file.GetName()
             if obj == None:
-                print "WARNING: no histogram named \"" + histPath + "\"in file \"" + file.GetName() + ", skipping..."
+                print "WARNING: no histogram named \"" + histPath + "\"in file \"" + _file.GetName() + ", skipping..."
                 continue
             if options.verbose > 1:
                 if obj.GetXaxis().GetLabels() != None:
