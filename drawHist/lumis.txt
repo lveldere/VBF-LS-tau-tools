@@ -1,8 +1,6 @@
-Tau_Run2012C_Prompt_Reco_v2_30Jan 6116
-Tau_icludingZprime_Run2012C_Prompt_Reco_v2_30Jan 281.155
-Tau_Run2012A_06AugReReco 82.136
-Tau_Run2012A_13Jul2012 808.472
-Tau_Run2012B_13Jul2012 4429
-Tau_Run2012C_24Aug 495.003
-Tau_Run2012C_ECALRecover_11Dec2012 134.242
-Tau_Run2012D_Prompt_Reco_15Feb 7274
+Tau-amkalsi-2012A 889.362
+TauParked_amkalsi-2012B 4429 
+TauParked_amkalsi-2012C_part1 6869 
+TauParked_amkalsi-2012C_part2 282.692
+TauParked_amkalsi-2012D_part1 4451
+TauParked_amkalsi-2012D_part2 2868
