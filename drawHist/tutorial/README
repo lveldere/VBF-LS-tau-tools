@@ -1,0 +1,57 @@
+--- step 1: 
+
+generate some input files
+
+$ generateInput.py
+
+have a look at the result
+
+$ ls input
+
+
+
+--- step 2: 
+
+make the drawHist scripts available in your path
+
+$ setenv.sh                
+
+you might want to copy the content of setenve into your .bashrc
+
+
+
+--- step 3
+
+weight your files
+
+$ weightHist.py
+
+the integrated luminosity is taken from lumi.txt
+the cross sections and preselection efficiencies are taken from xsection.txt
+the number of generated events that pass preselection efficiency are taken from the first bin in the histogram under input/*.root:counts
+
+
+
+--- step 4:
+
+test the drawing of a stack
+
+$ drawHist.py
+
+check out the result
+
+$ ls input_weighted_drawn
+
+check out the configuration file drawRules.cfg
+
+--- step 5:
+
+test the drawing of normalised shapes 
+
+$ drawHist.py --drawrules=drawRules_shapes.cfg --odir=input_weighted_drawn_shapes --force
+
+check out the result
+
+$ ls input_weighted_drawn_shapes
+
+check out the configuration file drawRules_shapes.cfg

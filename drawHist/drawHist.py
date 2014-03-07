@@ -15,7 +15,6 @@ XTITLEOFFSET=1.4
 CANVASWIDTH=800
 CANVASHEIGHT=800
 FRACRATIO=0.22
-
 #############################
 # read command line options
 #############################
@@ -90,6 +89,7 @@ class MyHistStyle:
     def __init__(self,name,options):
         self.name = name
         self.lineColor = int(myGet("line color",options,rt.kBlack))
+        self.lineStyle = int(myGet("line style",options,1))
         self.fillStyle = int(myGet("fill style",options,1001))
         self.fillColor = int(myGet("fill color",options,0))
         self.markerStyle = int(myGet("marker style",options,0))
@@ -106,6 +106,7 @@ class MyHistStyle:
         yaxis = None
         if hist.InheritsFrom("TH1"):
             if self.lineColor is not None: hist.SetLineColor(self.lineColor)
+            if self.lineStyle is not None: hist.SetLineStyle(self.lineStyle)
             if self.fillStyle is not None: hist.SetFillStyle(self.fillStyle)
             if self.fillColor is not None: hist.SetFillColor(self.fillColor)
             if self.markerStyle is not None: hist.SetMarkerStyle(self.markerStyle)
@@ -160,7 +161,6 @@ class DrawRuleHist:
         if len(self.fileNames)==0:
             print "ERROR in DrawRuleHist.__init__: 0 files, exit"
             sys.exit()
-        self.fileNames = [fileName + ".root" for fileName in self.fileNames] 
         self.histStyle = MyHistStyle(name,options)
         self.filePaths = None
         self.files = None
@@ -171,7 +171,22 @@ class DrawRuleHist:
         
     def init(self,idir,rules):
         if not self._init:
-            self.files = [rt.TFile.Open(idir + "/" + fileName) for fileName in self.fileNames]
+            self.files = []
+            for fileName in self.fileNames:
+                _list = fileName.split(":")
+                _file = rt.TFile.Open(idir + "/" + _list[0] + ".root")
+                if _file==None:
+                    print "exit..."
+                    sys.exit()
+                if len(_list)==2:
+                    _file = _file.Get(_list[1].lstrip("/"))
+                    if _file==None:
+                        print "ERROR: no directory {0} in {1}.root".format(_list[1],_list[0])
+                        print "exit..."
+                        sys.exit()
+                self.files.append(_file)
+                #self.files.append(
+                #    self.files = [rt.TFile.Open(idir + "/" + fileName) for fileName in self.fileNames]
             for _file in self.files:
                 paths = mytools.listRootFile(_file)
                 for p in paths:
@@ -408,6 +423,7 @@ class DrawRules:
         self._init = False
         self.defaultYtitle = None
         self.drawLegend = None
+        self.normalise = False
         
         # read cfg file
         cfg = ConfigParser.RawConfigParser()
@@ -425,6 +441,7 @@ class DrawRules:
         self.histCfgPath = None 
         self.histCfg = None
         self.drawlegend = int(myGet("drawlegend",mainOptions,default="1"))
+        self.normalise = bool(myGet("normalise",mainOptions,default=False))
 
         # parse other sections
         for section in cfg.sections():
@@ -533,12 +550,17 @@ class DrawRules:
         # read in the relevant histogram from each of the root files
         self.updateHist(histPath)
 
-        # find and set max
+        # normalise, find and set max
         max = None
         for d in range(0,len(self._draw)):
-            if self.rules[self._draw[d]].hist == None:
+            _hist = self.rules[self._draw[d]].hist
+            if _hist == None:
                 continue
-            _max = self.rules[self._draw[d]].hist.GetMaximum()
+            if self.normalise:
+                if _hist.InheritsFrom("TH1"):
+                    print 0.,_hist.GetNbinsX()
+                    _hist.Scale(1./_hist.Integral(0,_hist.GetNbinsX()))
+            _max = _hist.GetMaximum()
             if max == None or _max > max:
                 max = _max
 
