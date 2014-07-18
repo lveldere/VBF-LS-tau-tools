@@ -8,7 +8,7 @@ parser = OptionParser()
 parser.add_option("--idir",dest="idir",default="input",help="path to input directory with root files, default=%default")
 parser.add_option("--LS_SR",dest="LS_SR",default="0",help="expected QCD events in LS signal region default=%default")
 parser.add_option("--OS_SR",dest="OS_SR",default="0",help="expected QCD events in OS signal region default=%default")
-parser.add_option("--Lumi",dest="Lumi",default="19620",help="Overall luminosity used default=%default")
+parser.add_option("--Lumi",dest="Lumi",default="19712",help="Overall luminosity used default=%default")
 (options, args) = parser.parse_args()
 
 options.idir = options.idir.rstrip("/")
