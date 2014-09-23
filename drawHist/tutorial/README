@@ -1,57 +1,93 @@
---- step 1: 
+# pre-requisites
 
-generate some input files
-
-$ generateInput.py
-
-have a look at the result
-
-$ ls input
+make sure you have ROOT setup correctly
 
 
 
---- step 2: 
+# step 1: 
+
+## generate some input files
+
+      $ generateInput.py
+
+## have a look at the result
+
+      $ ls input
+      bkg1.root  bkg2.root  sig.root
+
+which are 3 files, corresponding to 2 bkg samples and 1 signal sample
+
+## look into one of the files
+
+      $ root bkg1.root
+      root [0] 
+      Attaching file input/bkg1.root as _file0...
+      root [1] _file0->ls()
+      TFile**		input/bkg1.root	
+       TFile*				input/bkg1.root	
+        KEY: TH1D			counts;1	counts
+        KEY: TH1D			var1;1		var1
+        KEY: TH1D			var2;1		var2
+
+"counts" is a special histogram that should contain in the first bin the sample size (see furhter),
+used to scale MC distributions a given integrated luminosity.
+"var1" and "var2" are histograms that will be drawn
+
+check also the structure of sig.root and bkg2.root,
+note that, except for the 'counts' histogram,
+bkg1.root, bkg2.root and the directories component1 and component2 in sig.root have the same structure.
+
+
+# step 2: 
 
 make the drawHist scripts available in your path
+edit drawHistLocation in setenv.sh appropriately and source:
 
-$ setenv.sh                
+      $ source setenv.sh                
 
-you might want to copy the content of setenve into your .bashrc
+you might want to copy the content of setenve into your .bashrc,
+when you want to keep on using drawHist
 
 
 
---- step 3
+# step 3
 
 weight your files
 
-$ weightHist.py
+      $ weightHist.py
 
-the integrated luminosity is taken from lumi.txt
-the cross sections and preselection efficiencies are taken from xsection.txt
-the number of generated events that pass preselection efficiency are taken from the first bin in the histogram under input/*.root:counts
+Checkout the result in the directory input_weighted.
+You'll find the same structure of files and histograms as in the directory input.
+The only thing that is different, is the normalisation of the histograms.
+Histograms are normalised with a factor sigma*L/N, with 
+- sigma, the sample cross section, read from xsection.txt
+- L, the integrated luminosity, read from lumi.txt
+- N, the sample size, read from the first bin of the histogram 'counts' in each root file
 
 
 
---- step 4:
+# step 4:
 
-test the drawing of a stack
+draw histograms according to default cfg file "drawRules.cfg"
 
-$ drawHist.py
+      $ drawHist.py
 
 check out the result
 
-$ ls input_weighted_drawn
+      $ ls input_weighted_drawn
 
-check out the configuration file drawRules.cfg
+and check out the configuration file drawRules.cfg
 
---- step 5:
+
+
+# step 5:
 
 test the drawing of normalised shapes 
 
-$ drawHist.py --drawrules=drawRules_shapes.cfg --odir=input_weighted_drawn_shapes --force
+      $ drawHist.py --drawrules=drawRules_shapes.cfg --odir=input_weighted_drawn_shapes --force
 
 check out the result
 
-$ ls input_weighted_drawn_shapes
+     $ ls input_weighted_drawn_shapes
 
 check out the configuration file drawRules_shapes.cfg
