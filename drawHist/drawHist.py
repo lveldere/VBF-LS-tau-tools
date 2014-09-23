@@ -550,8 +550,9 @@ class DrawRules:
         # read in the relevant histogram from each of the root files
         self.updateHist(histPath)
 
-        # normalise, find and set max
+        # normalise, find max, find min
         max = None
+        min = None
         for d in range(0,len(self._draw)):
             _hist = self.rules[self._draw[d]].hist
             if _hist == None:
@@ -560,9 +561,25 @@ class DrawRules:
                 if _hist.InheritsFrom("TH1"):
                     print 0.,_hist.GetNbinsX()
                     _hist.Scale(1./_hist.Integral(0,_hist.GetNbinsX()))
+            
+            # max
             _max = _hist.GetMaximum()
             if max == None or _max > max:
                 max = _max
+            
+            # min
+            _min = 0
+            if isinstance(_hist,rt.THStack):
+                _min = _hist.GetMinimum()
+            else:
+                for b in range(0,_hist.GetNbinsX()):
+                    bc = _hist.GetBinContent(b)
+                    if bc > 0 and (_min ==0 or bc < _min):
+                        _min = bc
+            if _min > 0 and (min == None or _min < min):
+                min = _min
+
+        print min
 
         # draw histograms
         HISTPAD.cd()
@@ -663,6 +680,7 @@ class DrawRules:
         if not os.path.exists(_odir):
             os.makedirs(_odir)
         HISTPAD.SetLogy(0)
+
         if self.drawratio is None:
             HISTPAD.Print(_opath)
         else:
@@ -670,6 +688,15 @@ class DrawRules:
         
         _opath = self.odir + "/" + histPath + "_log." + self.oformat 
         HISTPAD.SetLogy(1)
+        # set mimum for log scale
+        if not min is None:
+            for d in range(0,len(self._draw)):
+                rule = self.rules[self._draw[d]]
+                if rule.hist == None:
+                    continue
+                rule.hist.SetMinimum(min/2)
+        
+        CANVAS.Update()
         if self.drawratio is None:
             HISTPAD.Print(_opath)
         else:

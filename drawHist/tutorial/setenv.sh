@@ -1,1 +1,2 @@
-export PATH=$PATH:/space/lveldere/VBF-LS-tau-tools/drawHist
+drawHistLocation=$HOME/VBF-LS-tau-tools/drawHist
+export PATH=$PATH:$drawHistLocation

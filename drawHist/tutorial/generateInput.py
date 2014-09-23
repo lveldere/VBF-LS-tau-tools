@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import sys,os
+import sys,os,shutil
 
 # import root in batch mode
 sys.argv.append("-b")
@@ -77,6 +77,9 @@ dict_tfile = dict()
 dict_counts = dict()
 dict_tdir = dict()
 dict_hist = dict()
+if os.path.exists("input"):
+    shutil.rmtree("input")
+os.mkdir("input")
 for _species in species:
     _list = _species["file"].split(":")
     # create output root file
