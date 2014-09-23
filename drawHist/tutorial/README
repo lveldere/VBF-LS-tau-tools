@@ -64,6 +64,16 @@ Histograms are normalised with a factor sigma*L/N, with
 - L, the integrated luminosity, read from lumi.txt
 - N, the sample size, read from the first bin of the histogram 'counts' in each root file
 
+the format of xsections.txt is one line per sample with
+samplename cross-section pre-selection efficiency
+pre-selection efficiency is useful if you filled the first bin of 'counts'
+with the number of events after a pre-selection.
+in this case Histograms are normalised with a factor
+sigma*L*eff/N
+with eff the pre-selection efficiency
+
+the format of lumi.txt is simply the integrated luminosity
+
 
 
 # step 4:
