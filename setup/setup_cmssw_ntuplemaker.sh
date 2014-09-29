@@ -2,7 +2,7 @@ echo "Please input your CERN username: "
 read input_variable
 
 ini -d cmssw
-ini cmssw_cvmfs 
+ini cmssw_cvmfs
 kinit $input_variable@CERN.CH
 
 scram project CMSSW CMSSW_5_3_11_patch6
@@ -10,6 +10,7 @@ scram project CMSSW CMSSW_5_3_11_patch6
 cd CMSSW_5_3_11_patch6/src/
 cmsenv
 
+git cms-addpkg CondFormats/JetMETObjects
 git cms-addpkg PhysicsTools/PatAlgos
 git cms-merge-topic vadler:53X-addMVAElectronId
 git cms-addpkg PhysicsTools/PatUtils
