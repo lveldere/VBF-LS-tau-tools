@@ -39,5 +39,12 @@ cd TheNtupleMaker
 cmsenv
 scripts/initTNM.py
 
+cd $CMSSW_BASE/src/
+mkdir ntuples
+cd ntuples
+git clone https://github.com/rathjd/VBF-LS-tau-ntupler
+
+cd $CMSSW_BASE/src/
+
 scram b clean
 scram b -j 8
