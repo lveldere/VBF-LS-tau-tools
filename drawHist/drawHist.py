@@ -442,6 +442,8 @@ class DrawRules:
         self.histCfg = None
         self.drawlegend = int(myGet("drawlegend",mainOptions,default="1"))
         self.normalise = bool(myGet("normalise",mainOptions,default=False))
+        self.showOverflow = bool(myGet("show overflow",mainOptions,default=False))
+        print "overflow?",self.showOverflow
 
         # parse other sections
         for section in cfg.sections():
@@ -550,18 +552,35 @@ class DrawRules:
         # read in the relevant histogram from each of the root files
         self.updateHist(histPath)
 
-        # normalise, find max, find min
+        # add overflow bin, normalise, find max, find min
         max = None
         min = None
         for d in range(0,len(self._draw)):
             _hist = self.rules[self._draw[d]].hist
             if _hist == None:
                 continue
+
             if self.normalise:
                 if _hist.InheritsFrom("TH1"):
                     print 0.,_hist.GetNbinsX()
-                    _hist.Scale(1./_hist.Integral(0,_hist.GetNbinsX()))
+                    _hist.Scale(1./_hist.Integral(0,_hist.GetNbinsX()+2))
             
+            if self.showOverflow:
+                if _hist.InheritsFrom("TH1"):
+                    _nb = _hist.GetNbinsX()
+                    _hist.SetBinContent(_nb,_hist.GetBinContent(_nb)+_hist.GetBinContent(_nb+1))
+                    _hist.SetBinContent(_nb+1,0.)
+                else:
+                    _hists = _hist.GetHists()
+                    __hist = _hists.First()
+                    while not __hist == None:
+                        _nb = __hist.GetNbinsX()
+                        print __hist.GetName()
+                        __hist.SetBinContent(_nb,__hist.GetBinContent(_nb)+__hist.GetBinContent(_nb+1))
+                        __hist.SetBinContent(_nb+1,0.)
+                        __hist = _hists.After(__hist)
+                        
+                print "BLOB"
             # max
             _max = _hist.GetMaximum()
             if max == None or _max > max:

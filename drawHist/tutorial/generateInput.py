@@ -115,6 +115,9 @@ for _species in species:
         for p in range(0,len(parameters)):
             pdf.SetParameter(p,parameters[p])
         _hist.FillRandom(pdfname,_species["N"])
+        # add some artificial overflow
+        nb = _hist.GetNbinsX()
+        _hist.SetBinContent(nb+1,3*_hist.GetBinContent(nb))
         dict_hist[_species["name"]].append(_hist)
    
 #####################
