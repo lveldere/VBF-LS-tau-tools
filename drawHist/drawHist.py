@@ -11,7 +11,7 @@ TEXTFONT=44
 TEXTSIZE_BIG=30
 TEXTSIZE_SMALL=25
 YTITLEOFFSET=1.4
-XTITLEOFFSET=1.4
+XTITLEOFFSET=1.3
 CANVASWIDTH=800
 CANVASHEIGHT=800
 FRACRATIO=0.22
@@ -393,6 +393,7 @@ class DrawRuleHistRatio:
 
         # the ratio
         self.hist = self.numeratorDrawRule.hist.Clone()
+        self.hist.SetXTitle("")
         temp = self.denominatorDrawRule.hist.Clone()
         for b in range(0,temp.GetNbinsX()+1):
             temp.SetBinError(b,0.)
@@ -595,7 +596,7 @@ class DrawRules:
         for d in range(0,len(self._draw)):
             rule = self.rules[self._draw[d]]
             if rule.hist == None:
-                if verbose > 1:
+                if options.verbose > 1:
                     print "skip drawing for rule",rule.name
                 continue
             nd += 1
@@ -611,6 +612,8 @@ class DrawRules:
             if options.verbose > 1:
                 print "   draw " + rule.name + " with draw option ", drawOption
             rule.hist.Draw(drawOption)
+            if rule.hist.InheritsFrom("THStack"):
+                rule.hist.GetXaxis().SetTitle(rule.currentxtitle)
             self.applyHistCfg(rule.hist)
             
         # create and draw legend
@@ -680,8 +683,8 @@ class DrawRules:
                         drawOption = "SAME"
                     else:
                         drawOption += ",SAME"
-                rule.refHist.Draw(drawOption)
-                rule.refHist2.Draw("SAME,HIST")
+                    rule.refHist.Draw(drawOption)
+                    rule.refHist2.Draw("SAME,HIST")
 
         _opath = self.odir + "/" + histPath + "_lin." + self.oformat 
         _odir = os.path.split(_opath)[0]
