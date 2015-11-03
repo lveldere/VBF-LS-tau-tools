@@ -109,6 +109,7 @@ for _species in species:
     for _var in var:
         _varname = _var["name"]
         _hist = rt.TH1D(_var["name"],_var["name"],_var["nbin"],_var["min"],_var["max"])
+        _hist.SetXTitle(_var["name"])
         pdfname = _species["name"] + "_" + _var["name"]
         pdf = rt.TF1(pdfname,_species[_varname]["pdf"],_var["min"],_var["max"])
         parameters = _species[_varname]["parameters"]
