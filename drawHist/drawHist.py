@@ -4,6 +4,7 @@
 
 import sys,ConfigParser,os,shutil
 import ROOT as rt
+rt.gROOT.SetBatch(True)
 import mytools
 
 DEBUG = False
@@ -32,8 +33,6 @@ parser.add_option("--verbose",dest="verbose",action="store",help="run in verbose
 (options, args) = parser.parse_args()
 if options.odir == None:
     options.odir = options.idir.rstrip("/") + "_drawn"
-# get rid of root gui
-sys.argv.append("-b")
 
 #############################
 # define canvasses
@@ -170,6 +169,7 @@ class DrawRuleHist:
         self.histStyle = MyHistStyle(name,options)
         self.filePaths = None
         self.files = None
+        self.originalfiles = []
         self.hist = None 
         self._hists = None
         self._init = False
@@ -180,28 +180,25 @@ class DrawRuleHist:
             self.files = []
             for fileName in self.fileNames:
                 _list = fileName.split(":")
-                _file = rt.TFile.Open(idir + "/" + _list[0] + ".root")
+                _fileName = idir + "/" + _list[0] + ".root"
+                print "   - opening file '{0}'".format(_fileName)
+                _file = rt.TFile.Open(_fileName)
+                self.originalfiles.append(_file) # store to fool python's memory management
                 if _file==None:
-                    print "exit..."
+                    print "     ERROR: could not open file: exit..."
                     sys.exit()
                 if len(_list)==2:
-                    _file = _file.Get(_list[1].lstrip("/"))
-                    if _file==None:
-                        print "ERROR: no directory {0} in {1}.root".format(_list[1],_list[0])
+                    _dirName = _list[1].lstrip("/")
+                    _dir = _file.Get(_dirName)
+                    print "   - getting directory '{0}'".format(_dirName)
+                    if _dir==None:
+                        print "     ERROR: could not find directory: exit..."
                         print "exit..."
                         sys.exit()
-                self.files.append(_file)
-                #self.files.append(
-                #    self.files = [rt.TFile.Open(idir + "/" + fileName) for fileName in self.fileNames]
-            for _file in self.files:
-                paths = mytools.listRootFile(_file)
-                for p in paths:
-                    _file.Get(p)
-            for f in range(0,len(self.files)):
-                _file = self.files[f]
-                if _file == None:
-                    print "WARNING: skipping file",self.fileNames[f]
-                    continue
+                    self.files.append(_dir)
+                else:
+                    self.files.append(_file)
+                    
             self._init = True
 
     def reset(self):
@@ -209,12 +206,12 @@ class DrawRuleHist:
         self.up2date = False
         
     def updateHist(self,histPath):
+        if options.verbose > 1:
+            print "updating"
         if self.up2date:
             if options.verbose > 1:
                 print "already up to date"
             return
-        if options.verbose > 1:
-            print "updating"
         self.up2date = True
 
         if not self._init:
@@ -226,6 +223,7 @@ class DrawRuleHist:
             if _file == None:
                 continue
             obj = _file.Get(histPath)
+            rt.SetOwnership(obj,False)
             if options.verbose:
                 print "   " + _file.GetName()
             if obj == None:
@@ -235,7 +233,7 @@ class DrawRuleHist:
                 if obj.GetXaxis().GetLabels() != None:
                     print [x for x in obj.GetXaxis().GetLabels()]
             if self.hist is None:
-                self.hist = obj.Clone()
+                self.hist = obj
             else:
                 self.hist.Add(obj)
         
@@ -281,8 +279,9 @@ class DrawRuleHistSum:
                 continue
             if self.hist is None:
                 self.hist = rule.hist.Clone()
+                rt.SetOwnership(self.hist,False)
             else:
-                self.hist.Add(rule.hist.Clone())
+                self.hist.Add(rule.hist)
         self.histStyle.apply(self.hist)
         
 #######################
@@ -309,6 +308,7 @@ class DrawRuleHistStack:
         self.up2date = False
                                       
     def updateHist(self,histPath):
+
         if self.up2date:
             return
         self.up2date = True
@@ -325,6 +325,7 @@ class DrawRuleHistStack:
                 continue
             if self.hist is None:
                 self.hist = rt.THStack("stack","")
+                rt.SetOwnership(self.hist,False)
                 self.currentxtitle = rule.hist.GetXaxis().GetTitle()
                 self.currentytitle = rule.hist.GetYaxis().GetTitle()
                 self.hist.SetName(rule.hist.GetName())
@@ -506,9 +507,9 @@ class DrawRules:
                 self.defaultYtitle = myGet("ytitle",options,"events per bin")
 
     def getHistPaths(self,base=""):
-        print "reading histogram paths ..."
         self.init()
         templateFile = None
+        print "reading histogram paths ..."
         for rule in self.rules.values():
             if isinstance(rule,DrawRuleHist):
                 for f in range(0,len(rule.files)):
@@ -526,15 +527,25 @@ class DrawRules:
         return paths
 
     def resetHist(self):
+        if options.verbose > 1:
+            print "resetting..."
         for rule in self.rules.values():
+            if options.verbose > 1:
+                print "   resetting {0}".format(rule.name)
             rule.reset()
+        if options.verbose > 1:
+            print "...done"
+            
+        
 
     def updateHist(self,histpath):
-        if DEBUG:
+        if options.verbose > 1:
             print "update all histograms"
         self.init()
         self.resetHist()
         for rule in self.rules.values():
+            if options.verbose > 1:
+                print "updating rule {0} to hist {1}".format(rule.name,histpath)
             rule.updateHist(histpath)
 
     def applyHistCfg(self,hist):
@@ -558,12 +569,16 @@ class DrawRules:
             print "drawing histogram",histpath
 
         # read in the relevant histogram from each of the root files
+            
         self.updateHist(histPath)
-
+        
         # normalise, find max, find min
         max = None
         min = None
+        extras = []
         for d in range(0,len(self._draw)):
+            if options.verbose > 1:
+                print "...drawing for rule {0}".format(self.rules[self._draw[d]].name)
             _hist = self.rules[self._draw[d]].hist
             if _hist == None:
                 continue
@@ -571,7 +586,15 @@ class DrawRules:
             if self.normalise:
                 if _hist.InheritsFrom("TH1"):
                     _hist.Scale(1./_hist.Integral(0,_hist.GetNbinsX()+2))
-            
+                if _hist.ClassName() == "THStack":
+                    #_newStack = _hist.Clone()
+                    components = _hist.GetHists()
+                    integral = 0
+                    for component in components:
+                        integral += component.Integral(0,component.GetNbinsX()+2)
+                    for component in components:
+                        component.Scale(1./integral)
+
             # max
             _max = _hist.GetMaximum()
             if max == None or _max > max:
@@ -595,7 +618,7 @@ class DrawRules:
         for d in range(0,len(self._draw)):
             rule = self.rules[self._draw[d]]
             if rule.hist == None:
-                if verbose > 1:
+                if options.verbose > 1:
                     print "skip drawing for rule",rule.name
                 continue
             nd += 1
@@ -709,7 +732,6 @@ class DrawRules:
             HISTPAD.Print(_opath)
         else:
             CANVAS.Print(_opath)
-
 
 ##########################################################
 ##                                                      ##
